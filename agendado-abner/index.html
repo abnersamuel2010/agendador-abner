@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Agendado Abner — Agenda inteligente para o ENEM</title>
+<meta name="description" content="Agendado Abner: organize seus estudos para o ENEM com agenda inteligente, calendário, cronômetro e acompanhamento de progresso.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📘</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ======================= APP SHELL ======================= -->
+<div class="app" id="app">
+
+  <!-- ---------- Sidebar (desktop) / Drawer (mobile) ---------- -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__brand">
+      <span class="brand-mark" aria-hidden="true">📘</span>
+      <div class="brand-text">
+        <strong>Agendado</strong>
+        <span>Abner</span>
+      </div>
+    </div>
+
+    <nav class="sidebar__nav" aria-label="Navegação principal">
+      <button class="nav-item" data-view="dashboard" aria-current="page">
+        <span class="nav-ico" aria-hidden="true">🏠</span><span>Dashboard</span>
+      </button>
+      <button class="nav-item" data-view="agenda">
+        <span class="nav-ico" aria-hidden="true">🗒️</span><span>Minha Agenda</span>
+      </button>
+      <button class="nav-item" data-view="calendario">
+        <span class="nav-ico" aria-hidden="true">📅</span><span>Calendário</span>
+      </button>
+      <button class="nav-item" data-view="conteudos">
+        <span class="nav-ico" aria-hidden="true">📚</span><span>Conteúdos</span>
+      </button>
+      <button class="nav-item" data-view="redacao">
+        <span class="nav-ico" aria-hidden="true">✍️</span><span>Redação</span>
+      </button>
+      <button class="nav-item" data-view="revisoes">
+        <span class="nav-ico" aria-hidden="true">🔁</span><span>Revisões e Simulados</span>
+      </button>
+      <button class="nav-item" data-view="relatorios">
+        <span class="nav-ico" aria-hidden="true">📊</span><span>Relatórios</span>
+      </button>
+      <button class="nav-item" data-view="configuracoes">
+        <span class="nav-ico" aria-hidden="true">⚙️</span><span>Configurações</span>
+      </button>
+    </nav>
+
+    <div class="sidebar__footer">
+      <button class="btn btn--ghost btn--sm" id="btn-theme-toggle" type="button">
+        <span id="theme-icon" aria-hidden="true">🌙</span> <span id="theme-label">Modo escuro</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ---------------------- Main content ---------------------- -->
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn only-mobile" id="btn-open-menu" aria-label="Abrir menu">☰</button>
+      <h1 class="topbar__title" id="pageTitle">Dashboard</h1>
+      <button class="btn btn--primary btn--sm" id="btn-start-today">▶ Estudar agora</button>
+    </header>
+
+    <main class="views" id="views">
+
+      <!-- ===================== DASHBOARD ===================== -->
+      <section class="view" id="view-dashboard" data-view="dashboard">
+        <p class="greeting" id="greetingText">Olá! Vamos estudar hoje?</p>
+
+        <div class="cards-grid">
+          <article class="card stat-card">
+            <div class="stat-card__icon" style="background:var(--accent-soft);color:var(--accent)">⏳</div>
+            <div>
+              <div class="stat-card__value" id="statDaysLeft">–</div>
+              <div class="stat-card__label">Dias até o ENEM</div>
+            </div>
+          </article>
+          <article class="card stat-card">
+            <div class="stat-card__icon" style="background:var(--success-soft);color:var(--success)">📈</div>
+            <div>
+              <div class="stat-card__value" id="statProgress">–</div>
+              <div class="stat-card__label">Progresso geral</div>
+            </div>
+          </article>
+          <article class="card stat-card">
+            <div class="stat-card__icon" style="background:var(--warning-soft);color:var(--warning)">⏱️</div>
+            <div>
+              <div class="stat-card__value" id="statWeekHours">–</div>
+              <div class="stat-card__label">Horas estudadas (semana)</div>
+            </div>
+          </article>
+          <article class="card stat-card">
+            <div class="stat-card__icon" style="background:var(--danger-soft);color:var(--danger)">⚠️</div>
+            <div>
+              <div class="stat-card__value" id="statOverdue">–</div>
+              <div class="stat-card__label">Conteúdos atrasados</div>
+            </div>
+          </article>
+        </div>
+
+        <div class="dash-grid">
+          <article class="card">
+            <div class="card__header">
+              <h2>Estudos de hoje</h2>
+              <span class="chip" id="todayDateChip">–</span>
+            </div>
+            <div id="todayTasksList" class="task-list"></div>
+          </article>
+
+          <article class="card">
+            <div class="card__header"><h2>Progresso geral</h2></div>
+            <canvas id="dashDonut" class="donut-canvas" width="200" height="200"></canvas>
+            <div class="legend" id="areaProgressLegend"></div>
+          </article>
+
+          <article class="card">
+            <div class="card__header"><h2>Próximo conteúdo</h2></div>
+            <div id="nextTopicBox" class="next-topic-box">—</div>
+          </article>
+
+          <article class="card">
+            <div class="card__header"><h2>Estudos atrasados</h2></div>
+            <div id="overdueTasksList" class="task-list"></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ===================== AGENDA ===================== -->
+      <section class="view" id="view-agenda" data-view="agenda">
+        <div class="toolbar">
+          <div class="toolbar__group">
+            <input type="date" id="agendaDatePicker" class="input input--sm">
+            <button class="btn btn--ghost btn--sm" id="agendaTodayBtn">Hoje</button>
+          </div>
+          <div class="toolbar__group">
+            <select id="agendaFilterStatus" class="input input--sm">
+              <option value="">Todos os status</option>
+            </select>
+            <select id="agendaFilterArea" class="input input--sm">
+              <option value="">Todas as áreas</option>
+            </select>
+          </div>
+        </div>
+        <div id="agendaList" class="task-list task-list--full"></div>
+      </section>
+
+      <!-- ===================== CALENDÁRIO ===================== -->
+      <section class="view" id="view-calendario" data-view="calendario">
+        <div class="toolbar">
+          <div class="toolbar__group">
+            <button class="icon-btn" id="calPrev">‹</button>
+            <strong id="calLabel">—</strong>
+            <button class="icon-btn" id="calNext">›</button>
+          </div>
+          <div class="toolbar__group seg" id="calModeSeg">
+            <button class="seg__btn is-active" data-mode="mes">Mês</button>
+            <button class="seg__btn" data-mode="semana">Semana</button>
+            <button class="seg__btn" data-mode="dia">Dia</button>
+          </div>
+        </div>
+        <div class="card cal-legend">
+          <span><i class="dot" style="background:var(--accent)"></i>Programado</span>
+          <span><i class="dot" style="background:var(--success)"></i>Concluído</span>
+          <span><i class="dot" style="background:var(--warning)"></i>Revisão</span>
+          <span><i class="dot" style="background:#8E6BC7"></i>Redação</span>
+          <span><i class="dot" style="background:#E08A3C"></i>Simulado</span>
+          <span><i class="dot" style="background:var(--danger)"></i>Atrasado</span>
+        </div>
+        <div id="calendarGrid" class="calendar-grid"></div>
+      </section>
+
+      <!-- ===================== CONTEÚDOS ===================== -->
+      <section class="view" id="view-conteudos" data-view="conteudos">
+        <div class="toolbar">
+          <input type="search" id="contentSearch" class="input" placeholder="Pesquisar conteúdo...">
+          <div class="toolbar__group">
+            <select id="contentFilterStatus" class="input input--sm">
+              <option value="">Todos os status</option>
+            </select>
+            <select id="contentFilterDifficulty" class="input input--sm">
+              <option value="">Todas as dificuldades</option>
+              <option value="facil">Fácil</option>
+              <option value="medio">Médio</option>
+              <option value="dificil">Difícil</option>
+            </select>
+          </div>
+        </div>
+        <div class="tabs" id="areaTabs"></div>
+        <div id="contentList" class="content-grid"></div>
+      </section>
+
+      <!-- ===================== REDAÇÃO ===================== -->
+      <section class="view" id="view-redacao" data-view="redacao">
+        <div class="toolbar">
+          <h2 class="section-title">Suas redações</h2>
+          <button class="btn btn--primary btn--sm" id="btnNovaRedacao">+ Nova redação</button>
+        </div>
+        <div class="dash-grid">
+          <article class="card">
+            <div class="card__header"><h2>Evolução das notas</h2></div>
+            <canvas id="redacaoChart" class="line-canvas"></canvas>
+          </article>
+          <article class="card">
+            <div class="card__header"><h2>Resumo</h2></div>
+            <div class="mini-stats">
+              <div><strong id="redCount">0</strong><span>Redações feitas</span></div>
+              <div><strong id="redCorrigidas">0</strong><span>Corrigidas</span></div>
+              <div><strong id="redMedia">–</strong><span>Nota média</span></div>
+            </div>
+          </article>
+        </div>
+        <div id="redacaoList" class="task-list task-list--full"></div>
+      </section>
+
+      <!-- ===================== REVISÕES E SIMULADOS ===================== -->
+      <section class="view" id="view-revisoes" data-view="revisoes">
+        <div class="toolbar">
+          <h2 class="section-title">Revisões e Simulados</h2>
+          <div class="toolbar__group">
+            <button class="btn btn--ghost btn--sm" id="btnNovaRevisao">+ Revisão</button>
+            <button class="btn btn--primary btn--sm" id="btnNovoSimulado">+ Registrar simulado</button>
+          </div>
+        </div>
+        <div class="dash-grid">
+          <article class="card">
+            <div class="card__header"><h2>Desempenho por área (último simulado)</h2></div>
+            <canvas id="simuladoChart" class="bar-canvas"></canvas>
+          </article>
+          <article class="card">
+            <div class="card__header"><h2>Evolução (% de acertos)</h2></div>
+            <canvas id="simuladoEvolChart" class="line-canvas"></canvas>
+          </article>
+        </div>
+        <h3 class="subsection-title">Simulados registrados</h3>
+        <div id="simuladoList" class="task-list task-list--full"></div>
+        <h3 class="subsection-title">Revisões agendadas</h3>
+        <div id="revisaoList" class="task-list task-list--full"></div>
+      </section>
+
+      <!-- ===================== RELATÓRIOS ===================== -->
+      <section class="view" id="view-relatorios" data-view="relatorios">
+        <div class="dash-grid">
+          <article class="card">
+            <div class="card__header"><h2>Horas estudadas (últimos 7 dias)</h2></div>
+            <canvas id="repHorasChart" class="bar-canvas"></canvas>
+          </article>
+          <article class="card">
+            <div class="card__header"><h2>Progresso por área</h2></div>
+            <canvas id="repAreaChart" class="bar-canvas"></canvas>
+          </article>
+          <article class="card">
+            <div class="card__header"><h2>Conteúdos</h2></div>
+            <div class="mini-stats">
+              <div><strong id="repConcluidos">0</strong><span>Concluídos</span></div>
+              <div><strong id="repPendentes">0</strong><span>Pendentes</span></div>
+              <div><strong id="repAtrasados">0</strong><span>Atrasados</span></div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card__header"><h2>Taxa de conclusão do plano</h2></div>
+            <canvas id="repDonut" class="donut-canvas" width="200" height="200"></canvas>
+          </article>
+          <article class="card">
+            <div class="card__header"><h2>Evolução dos simulados</h2></div>
+            <canvas id="repSimuladoChart" class="line-canvas"></canvas>
+          </article>
+          <article class="card">
+            <div class="card__header"><h2>Evolução das redações</h2></div>
+            <canvas id="repRedacaoChart" class="line-canvas"></canvas>
+          </article>
+        </div>
+      </section>
+
+      <!-- ===================== CONFIGURAÇÕES ===================== -->
+      <section class="view" id="view-configuracoes" data-view="configuracoes">
+        <form id="configForm" class="form-grid card">
+          <h2>Plano de estudos</h2>
+
+          <label class="field">
+            <span>Nome do estudante</span>
+            <input type="text" id="cfgNome" class="input" required>
+          </label>
+
+          <label class="field">
+            <span>Data de início dos estudos</span>
+            <input type="date" id="cfgInicio" class="input" required>
+          </label>
+
+          <label class="field">
+            <span>Data da prova do ENEM</span>
+            <input type="date" id="cfgProva" class="input" required>
+          </label>
+
+          <label class="field">
+            <span>Horário preferencial de início</span>
+            <input type="time" id="cfgHorario" class="input" required>
+          </label>
+
+          <label class="field">
+            <span>Duração diária de estudo</span>
+            <select id="cfgDuracao" class="input">
+              <option value="60">1 hora</option>
+              <option value="90">1 hora e 30 minutos</option>
+              <option value="120">2 horas</option>
+              <option value="150">2 horas e 30 minutos</option>
+              <option value="180">3 horas</option>
+              <option value="custom">Personalizado (minutos)</option>
+            </select>
+          </label>
+          <label class="field" id="cfgDuracaoCustomWrap" hidden>
+            <span>Minutos personalizados (mín. 60)</span>
+            <input type="number" id="cfgDuracaoCustom" class="input" min="60" step="5" value="60">
+          </label>
+          <p class="field-error" id="cfgDuracaoError" hidden>Seu planejamento precisa ter no mínimo 1 hora de estudo por dia.</p>
+
+          <label class="field">
+            <span>Matérias por dia</span>
+            <select id="cfgSubjectsPerDay" class="input">
+              <option value="1">1</option>
+              <option value="2" selected>2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Minutos de pausa entre matérias</span>
+            <input type="number" id="cfgPausa" class="input" min="0" step="5" value="10">
+          </label>
+
+          <fieldset class="field field--full">
+            <legend>Dias disponíveis para estudar</legend>
+            <div class="weekday-picker" id="cfgWeekdays"></div>
+          </fieldset>
+
+          <label class="field">
+            <span>Dia reservado para revisão</span>
+            <select id="cfgRevisionDay" class="input"></select>
+          </label>
+
+          <label class="field">
+            <span>Dia reservado para simulado</span>
+            <select id="cfgSimuladoDay" class="input"></select>
+          </label>
+
+          <div class="field field--full form-actions">
+            <button type="submit" class="btn btn--primary" id="btnGerarPlano">Gerar / Atualizar plano de estudos</button>
+          </div>
+        </form>
+
+        <div class="card">
+          <h2>Dados</h2>
+          <div class="settings-actions">
+            <button class="btn btn--ghost btn--sm" id="btnExport">⬇ Exportar dados (.json)</button>
+            <label class="btn btn--ghost btn--sm file-btn">⬆ Importar dados
+              <input type="file" id="btnImport" accept="application/json" hidden>
+            </label>
+            <button class="btn btn--danger btn--sm" id="btnClearAll">🗑 Limpar todos os dados</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ---------------- Bottom nav (mobile) ---------------- -->
+    <nav class="bottom-nav" aria-label="Navegação inferior">
+      <button class="bottom-nav__item" data-view="dashboard">🏠<span>Início</span></button>
+      <button class="bottom-nav__item" data-view="agenda">🗒️<span>Agenda</span></button>
+      <button class="bottom-nav__item" data-view="calendario">📅<span>Calendário</span></button>
+      <button class="bottom-nav__item" data-view="conteudos">📚<span>Conteúdos</span></button>
+      <button class="bottom-nav__item" data-view="mais">⋯<span>Mais</span></button>
+    </nav>
+  </div>
+</div>
+
+<!-- ===================== MODAL: onboarding / setup ===================== -->
+<div class="modal-overlay" id="setupModalOverlay" hidden>
+  <div class="modal modal--lg" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <h2 id="setupTitle">Configurar Plano de Estudos</h2>
+    <p class="modal__subtitle">Vamos montar sua agenda inteligente até o dia do ENEM. Você pode alterar tudo depois em Configurações.</p>
+    <div id="setupFormMount"></div>
+  </div>
+</div>
+
+<!-- ===================== MODAL: mais (mobile) ===================== -->
+<div class="modal-overlay" id="maisModalOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true">
+    <h2>Mais opções</h2>
+    <div class="mais-grid">
+      <button class="nav-item" data-view="redacao">✍️<span>Redação</span></button>
+      <button class="nav-item" data-view="revisoes">🔁<span>Revisões e Simulados</span></button>
+      <button class="nav-item" data-view="relatorios">📊<span>Relatórios</span></button>
+      <button class="nav-item" data-view="configuracoes">⚙️<span>Configurações</span></button>
+    </div>
+    <button class="btn btn--ghost" id="btnFecharMais">Fechar</button>
+  </div>
+</div>
+
+<!-- ===================== MODAL: detalhe da tarefa ===================== -->
+<div class="modal-overlay" id="taskModalOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
+    <h2 id="taskModalTitle">Detalhe do estudo</h2>
+    <div id="taskModalBody"></div>
+  </div>
+</div>
+
+<!-- ===================== MODAL: cronômetro ===================== -->
+<div class="modal-overlay" id="timerModalOverlay" hidden>
+  <div class="modal modal--timer" role="dialog" aria-modal="true">
+    <h2 id="timerTaskTitle">Sessão de estudo</h2>
+    <p class="timer-subtitle" id="timerTaskSubtitle">—</p>
+    <div class="timer-display" id="timerDisplay">00:00:00</div>
+    <div class="timer-controls">
+      <button class="btn btn--ghost" id="timerPauseBtn">⏸ Pausar</button>
+      <button class="btn btn--primary" id="timerFinishBtn">✔ Finalizar</button>
+      <button class="btn btn--ghost" id="timerResetBtn">↺ Reiniciar</button>
+    </div>
+    <button class="btn btn--text" id="timerCloseBtn">Fechar (continua em segundo plano)</button>
+  </div>
+</div>
+
+<!-- ===================== MODAL: genérico (formulários rápidos) ===================== -->
+<div class="modal-overlay" id="genericModalOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true">
+    <h2 id="genericModalTitle">—</h2>
+    <div id="genericModalBody"></div>
+  </div>
+</div>
+
+<!-- ===================== MODAL: confirmação ===================== -->
+<div class="modal-overlay" id="confirmModalOverlay" hidden>
+  <div class="modal modal--sm" role="dialog" aria-modal="true">
+    <h2 id="confirmTitle">Tem certeza?</h2>
+    <p id="confirmText"></p>
+    <div class="modal__actions">
+      <button class="btn btn--ghost" id="confirmCancelBtn">Cancelar</button>
+      <button class="btn btn--danger" id="confirmOkBtn">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="data.js"></script>
+<script src="storage.js"></script>
+<script src="scheduler.js"></script>
+<script src="charts.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
